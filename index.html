@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Maps – Realtime Weather Driver Mode</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1a2e;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+
+      #app {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Effect canvas layers sit on top of the map */
+      #effects-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* UI Panel */
+      #ui-panel {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 20;
+        background: rgba(10, 10, 30, 0.85);
+        border: 1px solid rgba(255, 200, 100, 0.3);
+        border-radius: 12px;
+        padding: 16px;
+        min-width: 220px;
+        color: #f0e6c8;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+      }
+
+      #ui-panel h2 {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #ffc857;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 200, 87, 0.2);
+        padding-bottom: 8px;
+      }
+
+      .weather-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 13px;
+      }
+
+      .weather-info .weather-icon {
+        font-size: 24px;
+      }
+
+      .weather-info .weather-details {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .weather-info .weather-condition {
+        font-weight: 600;
+        color: #ffd580;
+      }
+
+      .weather-info .weather-temp {
+        font-size: 11px;
+        color: #b0a080;
+      }
+
+      .toggle-section h3 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #b0a080;
+        margin-bottom: 8px;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+
+      .toggle-row label {
+        cursor: pointer;
+        color: #e0d4b0;
+      }
+
+      /* Toggle switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        transition: background 0.25s;
+      }
+
+      .slider::before {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        left: 3px;
+        bottom: 3px;
+        background: #ccc;
+        border-radius: 50%;
+        transition: transform 0.25s, background 0.25s;
+      }
+
+      input:checked + .slider {
+        background: rgba(255, 196, 0, 0.5);
+      }
+
+      input:checked + .slider::before {
+        transform: translateX(16px);
+        background: #ffc857;
+      }
+
+      #status-bar {
+        margin-top: 12px;
+        font-size: 11px;
+        color: #888;
+        text-align: center;
+        border-top: 1px solid rgba(255, 200, 87, 0.1);
+        padding-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="map"></div>
+      <canvas id="effects-layer"></canvas>
+
+      <!-- UI Control Panel -->
+      <div id="ui-panel">
+        <h2>🗺 Driver Mode</h2>
+
+        <div class="weather-info" id="weather-display">
+          <span class="weather-icon" id="weather-icon">⏳</span>
+          <div class="weather-details">
+            <span class="weather-condition" id="weather-condition">Loading…</span>
+            <span class="weather-temp" id="weather-temp">—</span>
+          </div>
+        </div>
+
+        <div class="toggle-section">
+          <h3>Visual Effects</h3>
+
+          <div class="toggle-row">
+            <label for="toggle-rain">🌧 Rain</label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-rain" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <label for="toggle-sun">☀️ Sunlight</label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-sun" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <label for="toggle-fog">🌫 Fog</label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-fog" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <label for="toggle-clouds">☁️ Clouds</label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-clouds" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <label for="toggle-shadows">🌑 Shadows</label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-shadows" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="status-bar">Initializing…</div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
