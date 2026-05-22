@@ -1,0 +1,9 @@
+# Cloudflare Pages Build Configuration
+# Reference: https://developers.cloudflare.com/pages/configuration/build-configuration/
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
