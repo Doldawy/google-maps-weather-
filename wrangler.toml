@@ -1,0 +1,18 @@
+# Cloudflare Pages / Wrangler configuration
+# https://developers.cloudflare.com/pages/
+
+name = "google-maps-weather-driver-mode"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm run build"
+output_directory = "dist"
+
+[build.environment_variables]
+NODE_VERSION = "20"
+
+# Environment variables are set via the Cloudflare Pages dashboard.
+# Do NOT commit real API keys here.
+# Required variables:
+#   VITE_GOOGLE_MAPS_API_KEY
+#   VITE_OPENWEATHER_API_KEY
