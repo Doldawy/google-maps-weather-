@@ -1,6 +1,6 @@
-# 🚗 Google Maps Realtime Weather Driver Mode
+# 🌍 Google Maps Global Weather Layer
 
-A cinematic, driver-style Google Maps experience with **real-time weather overlays** built in TypeScript, powered by the Google Maps JavaScript API and OpenWeatherMap.
+A cinematic Google Maps experience with a **global, real-time weather layer** built in TypeScript, powered by the Google Maps JavaScript API and OpenWeatherMap.
 
 ---
 
@@ -9,13 +9,16 @@ A cinematic, driver-style Google Maps experience with **real-time weather overla
 | Feature | Description |
 |---|---|
 | **Driver Mode style** | High-contrast, warm-amber map theme with 45° tilt for an immersive driving feel |
-| **Live weather** | Fetches current conditions from OpenWeatherMap every 5 minutes |
+| **Global live weather** | Fetches current conditions for the active map center anywhere on Earth |
 | **Rain overlay** | Animated particle rain scaled to real precipitation intensity |
 | **Sunlight glow** | Radial warm-tone lens-flare effect for clear sky conditions |
 | **Fog / mist** | Drifting fog layers driven by real visibility data |
 | **Cloud shadows** | Soft elliptical shadow patches proportional to cloud coverage |
+| **Day / night gradient** | Atmospheric lighting shifts instantly with local sunrise and sunset |
+| **Extreme weather systems** | Detects hurricanes, cyclones, tropical storms, heavy rain cells, and wind bands |
+| **3D storm symbols** | Rotating storm markers show direction, strength, and approximate size |
 | **UI toggle panel** | Toggle every effect on/off at runtime without a page reload |
-| **Auto-pan refresh** | Weather updates automatically when you pan the map to a new area |
+| **Auto-pan refresh** | Weather updates automatically when you pan or zoom the map to a new area |
 | **Cloudflare Pages** | Pre-configured `wrangler.toml`, `_headers`, `_redirects` for zero-config deployment |
 
 ---
@@ -27,8 +30,9 @@ google-maps-weather-/
 ├── src/
 │   ├── config/         # API keys and app-wide settings
 │   │   └── index.ts
-│   ├── map/            # Google Maps initialisation and styling
+│   ├── map/            # Google Maps initialisation, styling, and weather overlays
 │   │   ├── index.ts
+│   │   ├── weatherLayer.ts
 │   │   └── styles.ts   # Driver-mode MapTypeStyle array
 │   ├── weather/        # OpenWeatherMap integration
 │   │   ├── index.ts    # WeatherService (polling + pub/sub)
@@ -39,6 +43,7 @@ google-maps-weather-/
 │   │   ├── rain.ts
 │   │   ├── sun.ts
 │   │   ├── fog.ts
+│   │   ├── night.ts
 │   │   └── clouds.ts
 │   └── main.ts         # Bootstrap and UI wiring
 ├── public/
@@ -127,20 +132,23 @@ npx wrangler pages deploy dist --project-name google-maps-weather-driver-mode
 
 ## 🎨 Visual Effects
 
-### Rain
-Canvas particles fall diagonally. Intensity is derived from the OpenWeatherMap condition group:
-- `thunderstorm` → 100 %
-- `rain` → 90 %
-- `drizzle` → 45 %
+### Rain and storms
+Canvas particles fall diagonally and scale with live precipitation, thunderstorm severity, and nearby heavy rain cells.
 
 ### Sunlight Glow
-A pulsing radial gradient centred in the upper-right of the viewport. Active when the sky is clear (cloudiness < 30 %).
+A pulsing radial gradient centred in the upper-right of the viewport. Active when the sky is clear and the current map center is in daytime.
 
 ### Fog
 Multiple horizontally-drifting semi-transparent bands. Intensity is driven by the `visibility` field — below 3 km visibility equals 60 % fog intensity.
 
 ### Cloud Shadows
 Soft elliptical gradients drift across the map. Intensity equals `cloudiness / 100` directly from the API.
+
+### Night / Day Gradient
+The canvas darkens or lifts based on local sunrise and sunset at the current map center, so moving the map across the world shifts the lighting instantly.
+
+### Extreme Weather Symbols
+Nearby severe systems are derived from live weather stations around the active map center and rendered as rotating 3D storm symbols with size, category, and spin direction.
 
 ---
 
@@ -158,4 +166,3 @@ Soft elliptical gradients drift across the map. Intensity equals `cloudiness / 1
 ## 📝 License
 
 MIT
-

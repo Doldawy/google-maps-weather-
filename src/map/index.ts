@@ -7,6 +7,7 @@
 import { driverStyle, defaultStyle } from './styles';
 
 export { driverStyle, defaultStyle };
+export { GlobalWeatherLayer } from './weatherLayer';
 
 /** Options passed to initMap(). */
 export interface MapOptions {
@@ -23,7 +24,6 @@ export interface MapOptions {
  */
 function loadMapsApi(apiKey: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Already loaded
     if (typeof google !== 'undefined' && google.maps) {
       resolve();
       return;
@@ -31,7 +31,6 @@ function loadMapsApi(apiKey: string): Promise<void> {
 
     const callbackName = '__gmapsInitCallback';
 
-    // Expose the callback on window so the script tag can invoke it
     (window as unknown as Record<string, unknown>)[callbackName] = () => {
       resolve();
     };
@@ -40,17 +39,13 @@ function loadMapsApi(apiKey: string): Promise<void> {
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&callback=${callbackName}&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onerror = () =>
-      reject(new Error('[map] Failed to load Google Maps script'));
+    script.onerror = () => reject(new Error('[map] Failed to load Google Maps script'));
     document.head.appendChild(script);
   });
 }
 
 /**
  * Initialise and return a Google Map instance.
- *
- * Loads the Maps API if it hasn't been loaded yet, then creates the map
- * inside the element identified by `containerId`.
  */
 export async function initMap(opts: MapOptions): Promise<google.maps.Map> {
   await loadMapsApi(opts.apiKey);
@@ -69,11 +64,10 @@ export async function initMap(opts: MapOptions): Promise<google.maps.Map> {
     streetViewControl: false,
     fullscreenControl: false,
     styles: opts.driverModeEnabled ? driverStyle : defaultStyle,
-    // Smooth tilt for driver feel
     tilt: 45,
     heading: 0,
     gestureHandling: 'greedy',
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#08101f',
   });
 
   return map;
@@ -91,7 +85,6 @@ export function applyDriverStyle(
 
 /**
  * Smoothly animate the map camera to a new heading.
- * Useful to simulate the "cinematic" driver camera motion.
  */
 export function animateHeading(
   map: google.maps.Map,
@@ -104,7 +97,6 @@ export function animateHeading(
 
   function step(now: number) {
     const t = Math.min((now - startTime) / durationMs, 1);
-    // Ease-out cubic
     const eased = 1 - Math.pow(1 - t, 3);
     map.setHeading(start + diff * eased);
     if (t < 1) requestAnimationFrame(step);
