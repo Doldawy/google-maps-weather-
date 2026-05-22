@@ -1,0 +1,4 @@
+# Cloudflare Pages rewrite rules
+# Route everything through index.html (SPA behaviour)
+
+/*    /index.html    200

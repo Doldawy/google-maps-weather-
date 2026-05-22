@@ -1,0 +1,17 @@
+{
+  "name": "google-maps-weather-driver-mode",
+  "version": "1.0.0",
+  "description": "Google Maps Realtime Weather Driver Mode — cinematic driver-style map with live weather overlays",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.55.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11"
+  }
+}
