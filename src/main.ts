@@ -73,9 +73,9 @@ async function bootstrap(): Promise<void> {
 
   // 4. Update weather location when the user pans the map
   map.addListener('idle', () => {
-    const centre = map.getCenter();
-    if (centre) {
-      weatherSvc.setLocation(centre.lat(), centre.lng());
+    const center = map.getCenter();
+    if (center) {
+      weatherSvc.setLocation(center.lat(), center.lng());
     }
   });
 
