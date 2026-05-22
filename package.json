@@ -1,15 +1,16 @@
 {
-  "name": "app",
+  "name": "google-maps-weather",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@types/google.maps": "^3.64.1",
+    "@types/google.maps": "^3.58.1",
     "typescript": "~6.0.2",
     "vite": "^8.0.12"
   }
