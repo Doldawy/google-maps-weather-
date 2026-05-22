@@ -208,12 +208,11 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController()
-    setIsLoading(true)
-    setError('')
 
     fetchWeather(mapCenter, controller.signal)
       .then((nextWeather) => {
         setWeather(nextWeather)
+        setError('')
       })
       .catch((nextError: unknown) => {
         if (controller.signal.aborted) {
@@ -243,6 +242,8 @@ function App() {
         return currentCenter
       }
 
+      setIsLoading(true)
+      setError('')
       return nextCenter
     })
   }
