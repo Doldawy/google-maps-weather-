@@ -1,0 +1,9 @@
+# Cloudflare Pages HTTP headers
+# Applied to all routes
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self)
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://*.openstreetmap.org; connect-src 'self' https://api.openweathermap.org https://maps.googleapis.com; frame-ancestors 'none';

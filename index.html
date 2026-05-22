@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Maps – Realtime Weather Driver Mode</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: #0d0d0d;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      /* Weather overlay canvas sits on top of the map */
+      #weather-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* ── Control Panel ── */
+      #control-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+        background: rgba(13, 13, 13, 0.85);
+        border: 1px solid rgba(255, 180, 60, 0.3);
+        border-radius: 12px;
+        padding: 18px 22px;
+        color: #f0e0b0;
+        min-width: 220px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.6);
+      }
+
+      #control-panel h2 {
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffb43c;
+        margin-bottom: 14px;
+        border-bottom: 1px solid rgba(255, 180, 60, 0.2);
+        padding-bottom: 8px;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .toggle-row label {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* Custom toggle switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: #333;
+        border-radius: 20px;
+        transition: background 0.25s;
+      }
+
+      .slider::before {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        left: 3px;
+        bottom: 3px;
+        background: #888;
+        border-radius: 50%;
+        transition: transform 0.25s, background 0.25s;
+      }
+
+      .switch input:checked + .slider {
+        background: rgba(255, 180, 60, 0.35);
+      }
+
+      .switch input:checked + .slider::before {
+        transform: translateX(18px);
+        background: #ffb43c;
+      }
+
+      /* Weather info footer */
+      #weather-info {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        background: rgba(13, 13, 13, 0.8);
+        border: 1px solid rgba(255, 180, 60, 0.25);
+        border-radius: 30px;
+        padding: 10px 24px;
+        color: #f0e0b0;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        backdrop-filter: blur(8px);
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+
+      #weather-info .weather-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #weather-info .weather-icon {
+        font-size: 18px;
+      }
+
+      #loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: #0d0d0d;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #ffb43c;
+        gap: 16px;
+        transition: opacity 0.6s;
+      }
+
+      #loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #loading-overlay .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 180, 60, 0.2);
+        border-top-color: #ffb43c;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading screen -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <span style="font-size:13px;letter-spacing:.1em;text-transform:uppercase">Loading Driver Mode…</span>
+    </div>
+
+    <!-- Google Maps container -->
+    <div id="map"></div>
+
+    <!-- Weather effect canvas -->
+    <canvas id="weather-canvas"></canvas>
+
+    <!-- Control Panel -->
+    <div id="control-panel">
+      <h2>🚗 Driver Mode</h2>
+
+      <div class="toggle-row">
+        <label for="toggle-rain">🌧 Rain Effect</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-rain" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label for="toggle-sun">☀️ Sunlight Glow</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-sun" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label for="toggle-fog">🌫 Fog Overlay</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-fog" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label for="toggle-clouds">☁️ Cloud Shadows</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-clouds" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label for="toggle-driver">🎬 Driver Style</label>
+        <label class="switch">
+          <input type="checkbox" id="toggle-driver" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Weather Info Bar -->
+    <div id="weather-info">
+      <div class="weather-item">
+        <span class="weather-icon" id="weather-icon">⛅</span>
+        <span id="weather-description">Loading…</span>
+      </div>
+      <div class="weather-item">
+        <span>🌡</span>
+        <span id="weather-temp">--°C</span>
+      </div>
+      <div class="weather-item">
+        <span>💧</span>
+        <span id="weather-humidity">--%</span>
+      </div>
+      <div class="weather-item">
+        <span>💨</span>
+        <span id="weather-wind">-- km/h</span>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
